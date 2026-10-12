@@ -1,4 +1,4 @@
-# Gaurav Ghosh — Portfolio
+# Gaurav Ghosh — Portfolio (https://tiny-medovik-b02edd.netlify.app/)
 
 A responsive dark portfolio built with HTML, CSS, browser JavaScript, and a dependency-free Node build script. Core profile content and fallback project links are available without JavaScript; JavaScript adds project case studies, filters, a local recruiter shortlist, print/copy briefs, command navigation, and an interactive Voronoi field.
 
