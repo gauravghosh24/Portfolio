@@ -1,0 +1,67 @@
+const projects = [
+  {id:'compiler',category:'backend',type:'BACKEND SYSTEM / 2026',title:'Sandboxed Online Compiler',description:'C++, Java, and Python execution with a Spring Boot backend and isolated Docker containers.',tags:['Java','Spring Boot','Docker'],repo:'https://github.com/gauravghosh24/OnlineCompiler',demo:'http://13.60.54.44:8080',challenge:'Executing user-submitted code means handling compilation, input, errors, and resource boundaries together.',approach:['Orchestrates dedicated Docker containers with CPU, memory, and network restrictions.','Supports C++, Java, and Python compilation and execution.','Returns compilation output, execution results, and runtime failures as structured feedback.'],flow:['Code + input','Spring Boot','Docker sandbox','Result + errors'],note:'The source README describes the execution and I/O design. The demo address is from the resume; its availability depends on the project server.',visual:'compiler'},
+  {id:'policy',category:'ai',type:'GENERATIVE AI APPLICATION / 2026',title:'Enterprise Policy Analyzer',description:'Multi-document RAG for policies and contracts, with source filenames and page references.',tags:['Python','LangChain','Qdrant','Groq'],repo:'https://github.com/gauravghosh24/Enterprise_level_Analyzer',challenge:'Answers across long, unstructured policy PDFs need a traceable connection to the source text.',approach:['Extracts PDF text with pdfplumber and chunks it with LangChain text splitters.','Generates Hugging Face semantic embeddings and retrieves similar passages from Qdrant.','Uses the Groq LLM API for grounded answers, summarization, clause extraction, risk identification, and metadata tagging.'],flow:['PDFs','Chunks + embeddings','Vector retrieval','Source-backed answer'],note:'The repository describes a local demonstration MVP with an in-memory index. The index resets on restart; scanned PDFs need OCR. Enterprise authentication and audit logs are not claimed as implemented.',visual:'docs'},
+  {id:'traffic',category:'ai',type:'AI / ML APPLICATION / 2026',title:'TrafficOps AI',description:'A command center for road-closure risk, field-resource recommendations, and diversion routes.',tags:['FastAPI','scikit-learn','MapmyIndia'],repo:'https://github.com/gauravghosh24/FLipkartTraffic_Control_Round2',demo:'https://flipkarttraffic-control-round2-1.onrender.com',challenge:'Traffic operations combine prediction, resource planning, route selection, and learning from outcomes.',approach:['Uses trained scikit-learn models with spatial, temporal, and historical features to estimate closure risk and impact severity.','Adapts deployment recommendations using post-event outcomes; behavior validated over 10 simulation cycles as stated in the resume.','Generates graph-based diversions around blocked junctions, visualized with MapmyIndia and Leaflet.'],flow:['Event features','Risk prediction','Deployment + diversion','Outcome feedback'],note:'The repository describes a lightweight contextual bandit with rule-based baseline recommendations. Simulation validation does not establish real-world deployment performance.',visual:'traffic'}
+];
+const $ = s => document.querySelector(s);
+const visual = {
+compiler:'<div class="mini-editor"><div class="editor-head"><span class="editor-dot"></span><span class="editor-dot"></span><span class="editor-dot"></span><span style="margin-left:auto">main.py</span></div><code>def solve():<br>&nbsp;&nbsp;idea = read_input()<br>&nbsp;&nbsp;return build(idea)<br><br>print(solve())</code><div class="output">→ code → isolated execution → output</div></div>',
+docs:'<div class="doc-stack"><div class="doc-heading">POLICY / SOURCE INDEX</div><div class="doc-line"></div><div class="doc-line"></div><div class="doc-line"></div><div class="doc-answer">Question → retrieval → cited answer ↗</div></div>',
+traffic:'<svg class="map-art" viewBox="0 0 300 160" aria-hidden="true"><g stroke="#435365" stroke-width="1" fill="none"><path d="M0 35L300 35M0 80L300 80M0 125L300 125M40 0L40 160M100 0L100 160M180 0L180 160M250 0L250 160"/><path d="M0 0L300 160M220 0L80 160"/></g><path d="M40 125L100 125L100 35L250 35L250 80" stroke="#c4f477" fill="none" stroke-width="3" stroke-linejoin="round"/><circle cx="180" cy="80" r="12" fill="#bd76633a" stroke="#d9957d"/><path d="M175 75L185 85M185 75L175 85" stroke="#d9957d"/><circle cx="40" cy="125" r="5" fill="#c4f477"/><circle cx="250" cy="80" r="5" fill="#c4f477"/><text x="127" y="151" fill="#9bb28a" font-size="9" font-family="monospace">DIVERSION / GRAPH PATH</text></svg>'
+};
+let shortlist = new Set();
+try { const saved = JSON.parse(localStorage.getItem('gg-shortlist') || '[]'); if(Array.isArray(saved)) shortlist = new Set(saved.filter(id=>projects.some(p=>p.id===id))); } catch {}
+function renderProjects(){
+  $('#project-grid').innerHTML = projects.map(p=>`<article class="project" data-category="${p.category}" data-project="${p.id}"><div class="project-visual visual-${p.visual}">${visual[p.visual]}<span class="illustration-label">CONCEPT ILLUSTRATION</span></div><div class="project-copy"><span class="project-category">${p.type}</span><h3>${p.title}</h3><p>${p.description}</p><div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="project-actions"><button class="case-button" data-case="${p.id}">Explore case study ↗</button><button class="save-button" data-save="${p.id}" aria-label="Save ${p.title} to recruiter shortlist" aria-pressed="${shortlist.has(p.id)}">${shortlist.has(p.id)?'Saved ✓':'+ Save'}</button></div></div></article>`).join('');
+  $('#shortlist-count').textContent = shortlist.size;
+}
+renderProjects();
+function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').classList.remove('visible'),3500);}
+function showDialog(id){const d=$(id);if(!d.open)d.showModal();}
+function fillBrief(){
+ const chosen=shortlist.size?projects.filter(p=>shortlist.has(p.id)):projects;
+ $('#brief-projects').innerHTML=(shortlist.size?'<p class="source-note">Your selected projects · saved in this browser</p>':'<p class="source-note">All selected work · save projects to tailor this brief</p>')+chosen.map(p=>`<div class="brief-project"><h4>${p.title}</h4><p>${p.description}</p><p>${p.tags.join(' · ')}</p><a href="${p.repo}" target="_blank" rel="noopener noreferrer">View source ↗</a></div>`).join('');
+}
+function openBrief(){fillBrief();showDialog('#brief-dialog');}
+document.addEventListener('click',event=>{
+ const save=event.target.closest('[data-save]');
+ if(save){const id=save.dataset.save;shortlist.has(id)?shortlist.delete(id):shortlist.add(id);try{localStorage.setItem('gg-shortlist',JSON.stringify([...shortlist]));}catch{}save.setAttribute('aria-pressed',shortlist.has(id));save.textContent=shortlist.has(id)?'Saved ✓':'+ Save';$('#shortlist-count').textContent=shortlist.size;toast(shortlist.has(id)?'Added to your hiring brief':'Removed from your hiring brief');}
+ const study=event.target.closest('[data-case]');
+ if(study){const p=projects.find(p=>p.id===study.dataset.case);$('#detail-content').innerHTML=`<span class="project-category">${p.type}</span><h2 id="detail-title">${p.title}</h2><p>${p.description}</p><h3>The challenge</h3><p>${p.challenge}</p><h3>How it works</h3><div class="tags">${p.flow.map((s,i)=>`<span class="tag">${i+1}. ${s}</span>`).join('')}</div><ul>${p.approach.map(a=>`<li>${a}</li>`).join('')}</ul><h3>Scope & evidence</h3><p>${p.note}</p><div class="dialog-actions"><a class="button primary" href="${p.repo}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>${p.demo?`<a class="button" href="${p.demo}" target="_blank" rel="noopener noreferrer">Open project demo ↗</a>`:''}</div>`;showDialog('#detail-dialog');}
+ const opener=event.target.closest('[data-open]');if(opener){if(opener.dataset.open==='brief')openBrief();if(opener.dataset.open==='command')openCommand();}
+ const close=event.target.closest('.close');if(close)close.closest('dialog').close();
+});
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const rect=d.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)d.close();}}));
+document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
+ const filter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',b===button);});document.querySelectorAll('.project').forEach(p=>p.hidden=filter!=='all'&&p.dataset.category!==filter);
+}));
+$('#shortlist-open').addEventListener('click',openBrief);
+$('#print-brief').addEventListener('click',()=>{document.body.classList.add('printing-brief');window.print();});
+window.addEventListener('afterprint',()=>document.body.classList.remove('printing-brief'));
+$('#brief-dialog').addEventListener('close',()=>document.body.classList.remove('printing-brief'));
+$('#copy-brief').addEventListener('click',async()=>{
+ const selected=shortlist.size?projects.filter(p=>shortlist.has(p.id)):projects;
+ const text=['Gaurav Ghosh — hiring brief','B.Tech CSE, NIT Silchar | Expected 2027 | CGPA 9.15','LeetCode Guardian (peak 2235) | Codeforces Expert (peak 1663) | 1000+ problems','',...selected.map(p=>p.title+'\n'+p.description+'\n'+p.repo),'','Research: CPU/GPU Voronoi construction with Python, NumPy, Taichi; benchmarking in progress.','Marketing Head, Esports Club, NIT Silchar; 15-member team.','Source: resume edited October 3, 2026. Ratings and ongoing status reflect the resume.','','gauravghosh530@gmail.com | +91 94770 43654','https://www.linkedin.com/in/gaurav-ghosh-50a2362a8/','https://github.com/gauravghosh24'].join('\n');
+ try{await navigator.clipboard.writeText(text);toast('Hiring brief copied. Ready to share with your team.');}catch{toast('Clipboard unavailable. Use Print / save PDF to keep this brief.');}
+});
+const commands=[['Selected work','#work'],['GPU research','#research'],['Technical skills','#skills'],['Education & achievements','#about'],['Contact Gaurav','#contact'],['Recruiter quick-view','brief']];
+function renderCommands(query=''){const found=commands.filter(c=>c[0].toLowerCase().includes(query.toLowerCase()));$('#command-results').replaceChildren();for(const [label,target] of found){const b=document.createElement('button');b.textContent=label+' ↗';b.addEventListener('click',()=>{$('#command-dialog').close();if(target==='brief')openBrief();else{location.hash=target;$(target).setAttribute('tabindex','-1');$(target).focus({preventScroll:true});}});$('#command-results').append(b);}if(!found.length){const p=document.createElement('p');p.textContent='No matching section. Try “work” or “contact”.';$('#command-results').append(p);}}
+function openCommand(){renderCommands();$('#command-search').value='';showDialog('#command-dialog');$('#command-search').focus();}
+$('#command-search').addEventListener('input',e=>renderCommands(e.target.value));
+$('#command-search').addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();$('#command-results button')?.focus();}if(e.key==='Enter')$('#command-results button')?.click();});
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if($('#command-dialog').open)$('#command-dialog').close();else{document.querySelectorAll('dialog[open]').forEach(d=>d.close());openCommand();}}});
+const canvas=$('#voronoi'),ctx=canvas.getContext('2d');
+const initialSites=[[.15,.18],[.56,.12],[.84,.29],[.36,.39],[.72,.58],[.17,.75],[.47,.83],[.93,.87]];
+let sites=initialSites.map(s=>[...s]);
+function drawField(){
+ const w=220,h=215,colors=[[40,55,45],[54,66,53],[45,45,64],[60,59,78],[62,75,60],[32,47,51],[49,57,72],[72,75,54]],image=ctx.createImageData(w,h),ids=new Uint8Array(w*h);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){let nearest=0,distance=Infinity;sites.forEach((s,i)=>{const d=(x/w-s[0])**2+(y/h-s[1])**2;if(d<distance){distance=d;nearest=i;}});ids[y*w+x]=nearest;const color=colors[nearest%colors.length],offset=(y*w+x)*4;image.data[offset]=color[0];image.data[offset+1]=color[1];image.data[offset+2]=color[2];image.data[offset+3]=255;}
+ for(let y=1;y<h;y++)for(let x=1;x<w;x++){const i=y*w+x;if(ids[i]!==ids[i-1]||ids[i]!==ids[i-w]){image.data[i*4]=157;image.data[i*4+1]=175;image.data[i*4+2]=142;}}
+ const off=document.createElement('canvas');off.width=w;off.height=h;off.getContext('2d').putImageData(image,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,canvas.width,canvas.height);
+ ctx.fillStyle='#c4f477';sites.forEach(s=>{ctx.beginPath();ctx.arc(s[0]*canvas.width,s[1]*canvas.height,3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#c4f47744';ctx.beginPath();ctx.arc(s[0]*canvas.width,s[1]*canvas.height,8,0,Math.PI*2);ctx.stroke();});$('#site-count').textContent=sites.length;
+}
+function addSite(s){if(sites.length>=24){toast('24-site limit reached. Reset to start a new field.');return;}sites.push(s);drawField();}
+canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect();addSite([(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]);});
+$('#add-site').addEventListener('click',()=>addSite([.1+Math.random()*.8,.1+Math.random()*.8]));
+$('#reset-sites').addEventListener('click',()=>{sites=initialSites.map(s=>[...s]);drawField();toast('Field reset to eight sites');});
+drawField();

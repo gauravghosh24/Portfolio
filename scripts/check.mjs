@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFile, access } from 'node:fs/promises';
+const html = await readFile('public/index.html', 'utf8');
+const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+assert.equal(new Set(ids).size, ids.length, 'HTML ids must be unique');
+for (const m of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(m[1]), 'Missing anchor: '+m[1]);
+for (const file of ['styles.css','visuals.css','app.js','visuals.js','favicon.svg','resume.pdf']) await access('public/'+file);
+for (const claim of ['9.15','2235','1663','453','34,700','93.2%','96.8%','15-member','gauravghosh530@gmail.com','94770 43654']) assert.ok(html.includes(claim), 'Missing resume detail: '+claim);
+const pdf=await readFile('public/resume.pdf'); assert.equal(pdf.subarray(0,5).toString(),'%PDF-');
+assert.ok(!/API_KEY|download_url|oaiusercontent|TODO|lorem ipsum/i.test(html), 'Unexpected private reference or placeholder');
+console.log('Passed: anchors, duplicate IDs, local assets, key resume facts, PDF signature, and placeholder checks.');
